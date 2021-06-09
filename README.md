@@ -13,4 +13,4 @@ To experiment with `cool.ipynb` notebook:
 - Kernel / Restart & Run All
 - Play with the widgets
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cmg-git/PsychrAn_cool/HEAD)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsychrAn_cool/HEAD)
