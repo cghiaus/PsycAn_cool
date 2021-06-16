@@ -9,7 +9,8 @@ Cooling systems as an inverse (control) problem.
 
 To experiment with `cool.ipynb` notebook:
 - Select the notebook
-- Kernel / Restart & Run All
+- Kernel / Restart & Run All or >> icon
+- Click: `Restart and Run All Cells
 - Play with the widgets
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsychrAn_cool/HEAD)
