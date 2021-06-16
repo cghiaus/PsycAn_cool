@@ -11,7 +11,7 @@ v(t, r)     specific volume
 import numpy as np
 # Constants
 Mv = 18.015_286             # [kg/kmol] vapor molaire mass
-Mda = 28.996                # [kg/kmol] air molaire mass
+Mda = 28.966                # [kg/kmol] air molaire mass
 R = 8_314.462_618_153_24    # [J/(kmol*K)] ideal gaz constant
 
 

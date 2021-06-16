@@ -146,12 +146,13 @@ import numpy as np
 import pandas as pd
 import psychro as psy
 
+
 # constants
 c = 1e3         # J/kg K, air specific heat
 l = 2496e3      # J/kg, latent heat
 
 # to be used in self.m_ls / least_squares
-m_max = 100     # ks/s, max dry air mass flow rate
+m_max = 100     # ks/s, max dry air mass flow rat
 θs_0 = 5        # °C, initial guess for saturation temperature
 
 
@@ -370,19 +371,19 @@ class MxCcRhTzBl:
             """
             self.actual[0] = m
             x = self.solve_lin(θs_0)
-            if value == 'θS':
+            if value == 'θ4':
                 θS = x[6]       # supply air
                 return abs(sp - θS)
             elif value == 'φ5':
                 wI = x[9]       # indoor air
                 return abs(sp - wI)
             else:
-                print('ERROR in ε(m): value not in {"θS", "wI"}')
+                print('ERROR in ε(m): value not in {"θ5", "φ5"}')
 
         m0 = self.actual[0]     # initial guess
         if value == 'φ5':
-            self.actual[4] = 0
-            sp = psy.w(self.actual[7], sp)
+            self.actual[4] = 0  # Kw = 0; no reheating
+            sp = psy.w(self.actual[7], sp)  # w5 = f(θ5, φ5)
         # gives m for min(θSsp - θS); m0 is the initial guess of m
         # min ε(m) subject to 0 < m < m_max; m0 initial guess
         res = least_squares(ε, m0, bounds=(0, m_max))
@@ -441,7 +442,7 @@ class MxCcRhTzBl:
             """
             self.actual[2] = β
             x = self.solve_lin(θs_0)
-            if value == 'θS':
+            if value == 'θ5':
                 θS = x[6]       # supply air
                 return abs(sp - θS)
             elif value == 'φ5':
@@ -489,13 +490,19 @@ class MxCcRhTzBl:
         # Points: O, s, S, I
         θ = np.append(θo, x[0:10:2])
         w = np.append(wo, x[1:10:2])
-        # Points       O   s   S   I     Elements
-        A = np.array([[-1, 1, 0, 0, 0, 1],      # MX1
+        # Points       o   1  2  3  4  5        Elements
+        A = np.array([[-1, 1, 0, 0, 0, 1],      # MR
                       [0, -1, 1, 0, 0, 0],      # CC
-                      [0, 0, -1, 1, -1, 0],     # MX2
+                      [0, -1, 1, 1, 0, 0],     # MX
                       [0, 0, 0, -1, 1, 0],      # HC
                       [0, 0, 0, 0, -1, 1]])     # TZ
-        psy.chartA(θ, w, A)
+
+        on_psy_chart = all(-10 < θ_value < 50 for θ_value in θ)
+        on_psy_chart &= all(0 < w_value < 0.65 for w_value in w)
+        if on_psy_chart:
+            psy.chartA(θ, w, A)
+        else:
+            print('Values out of the phychroetric chart')
 
         θ = pd.Series(θ)
         w = 1000 * pd.Series(w)         # kg/kg -> g/kg
@@ -516,8 +523,8 @@ class MxCcRhTzBl:
         print(Q.to_frame().T / 1000, 'kW')
         return None
 
-    def CAV_wd(self, θo=32, φo=0.5, θ5sp=26, φ5sp=0.5,
-               mi=1.35, UA=675, QsBL=34_000, QlBL=4_000):
+    def CAV_wd(self, θo=32, φo=0.7, θ5sp=24, φ5sp=0.5,
+               mi=0.90, UA=690, QsBL=18_000, QlBL=2_500):
         """
         Constant air volume (CAV) to be used in Jupyter with widgets
 
@@ -539,73 +546,11 @@ class MxCcRhTzBl:
         x = self.solve_lin(θ0)
         # print(f'm = {self.actual[0]: .3f} kg/s,\
         #       mo = {self.actual[1]: .3f} kg/s')
-        print('m = {m: .3f} kg/s, mo = {mo: .3f} kg/s'.format(
-            m=self.actual[0], mo=self.actual[1]))
+        print('m = {m: .3f} kg/s, mo = {mo: .3f} kg/s, β = {β: .3f}'.format(
+            m=self.actual[0], mo=self.actual[1], β=self.actual[2]))
         self.psy_chart(x, self.actual[5], self.actual[6])
 
-    def VAV_wd(self, value='θS', sp=18, θo=32, φo=0.5, θ5sp=24, φ5sp=0.5,
-               mi=1.35, UA=675, QsBL=34_000, QlBL=4_000):
-        """
-        Variable air volume (VAV) to be used in Jupyter with widgets
-
-        Parameters
-        ----------
-        value       {"θS", "wI"}' type of value controlled
-        sp          set point for the controlled value
-        θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
-                    given by widgets in Jupyter Lab
-
-        Returns
-        -------
-        None.
-        """
-        """
-        value='θS' (KwI = 0)
-
-        <=4================================4===========================
-                ||                         m                          ||
-                4 (m-mo) =======0=======                              ||
-                ||    M  ||  (1-β)m   ||    C            S         I  ||
-        θo,φo=>[MX1]==0==||          [MX2]==2==[HC]==F===3==>[TZ]==4==||
-         mo              ||         s ||        /   /    |    //      |
-                         ===0=[CC]==1===       s   m     |   sl       |
-                              /\\   βm         |   |     |   ||       |
-                             t  sl             |   |     |  [BL]<-mi  |
-                             |                 |   |     |   //       |
-                             |                 |   |     |  sl        |
-                             |                 |   |     |            |
-                             |                 |   |--ls-|<-θS        |
-                             |                 |<-----[K]-------------|<-wI
-                             |<-----------------------[K]-------------|<-θI
-
-        value='wI' (KwI = 0)
-
-        <=4================================4===========================
-                ||                         m                          ||
-                4 (m-mo) =======0=======                              ||
-                ||    M  ||  (1-β)m   ||    C            S         I  ||
-        θo,φo=>[MX1]==0==||          [MX2]==2==[HC]==F===3==>[TZ]==4==||
-         mo              ||         s ||        /   /         //      |
-                         ===0=[CC]==1===       s   m         sl       |
-                              /\\   βm         |   |         ||       |
-                             t  sl             |   |        [BL]<-mi  |
-                             |                 |   |         //       |
-                             |                 |   |        sl        |
-                             |                 |   |                  |
-                             |                 |   |--ls--------------|<-wI
-                             |                 |<-----[K]-------------|<-wI
-                             |<-----------------------[K]-------------|<-θI
-
-        """
-        # Design values
-        self.actual[5:] = θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
-
-        x = self.m_ls(value, sp)
-        print('m = {m: .3f} kg/s, mo = {mo: .3f} kg/s'.format(
-            m=self.actual[0], mo=self.actual[1]))
-        self.psy_chart(x, θo, φo)
-
-    def VBP_wd(self, value='θS', sp=18, θo=32, φo=0.5, θ5sp=24, φ5sp=0.5,
+    def VBP_wd(self, value='φ5', sp=0.5, θo=32, φo=0.5, θ5sp=24, φ5sp=0.5,
                mi=1.35, UA=675, QsBL=34_000, QlBL=4_000):
         """
         Variabl by-pass (VBP) to be used in Jupyter with widgets
@@ -668,6 +613,68 @@ class MxCcRhTzBl:
         self.psy_chart(x, θo, φo)
 
         return x
+
+    def VAV_wd(self, value='θ4', sp=14, θo=32, φo=0.7, θ5sp=24, φ5sp=0.5,
+               mi=0.90, UA=690, QsBL=18_000, QlBL=2_500):
+        """
+        Variable air volume (VAV) to be used in Jupyter with widgets
+
+        Parameters
+        ----------
+        value       {"θS", "wI"}' type of value controlled
+        sp          set point for the controlled value
+        θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
+                    given by widgets in Jupyter Lab
+
+        Returns
+        -------
+        None.
+        """
+        """
+        value='θS' (KwI = 0)
+
+        <=4================================4===========================
+                ||                         m                          ||
+                4 (m-mo) =======0=======                              ||
+                ||    M  ||  (1-β)m   ||    C            S         I  ||
+        θo,φo=>[MX1]==0==||          [MX2]==2==[HC]==F===3==>[TZ]==4==||
+         mo              ||         s ||        /   /    |    //      |
+                         ===0=[CC]==1===       s   m     |   sl       |
+                              /\\   βm         |   |     |   ||       |
+                             t  sl             |   |     |  [BL]<-mi  |
+                             |                 |   |     |   //       |
+                             |                 |   |     |  sl        |
+                             |                 |   |     |            |
+                             |                 |   |--ls-|<-θS        |
+                             |                 |<-----[K]-------------|<-wI
+                             |<-----------------------[K]-------------|<-θI
+
+        value='wI' (KwI = 0)
+
+        <=4================================4===========================
+                ||                         m                          ||
+                4 (m-mo) =======0=======                              ||
+                ||    M  ||  (1-β)m   ||    C            S         I  ||
+        θo,φo=>[MX1]==0==||          [MX2]==2==[HC]==F===3==>[TZ]==4==||
+         mo              ||         s ||        /   /         //      |
+                         ===0=[CC]==1===       s   m         sl       |
+                              /\\   βm         |   |         ||       |
+                             t  sl             |   |        [BL]<-mi  |
+                             |                 |   |         //       |
+                             |                 |   |        sl        |
+                             |                 |   |                  |
+                             |                 |   |--ls--------------|<-wI
+                             |                 |<-----[K]-------------|<-wI
+                             |<-----------------------[K]-------------|<-θI
+
+        """
+        # Design values
+        self.actual[5:] = θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
+
+        x = self.m_ls(value, sp)
+        print('m = {m: .3f} kg/s, mo = {mo: .3f} kg/s, β = {β: .3f}'.format(
+            m=self.actual[0], mo=self.actual[1], β=self.actual[2]))
+        self.psy_chart(x, θo, φo)
 
 
 # TESTS: uncomment
