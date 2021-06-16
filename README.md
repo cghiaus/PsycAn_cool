@@ -4,7 +4,6 @@ Cooling systems as an inverse (control) problem.
 
 **Contents**
 - `cool.ipynb` Jupyter notebook with widgets;
-- `cooling_loads.ipynb` Jupyter notebook which calculaes the cooling loads used in `cool.ipynb`;
 - `cool.py` Python module implementing the psychrometric analysis;
 - `psychro.py` Python module for psycrhrometrics.
 
