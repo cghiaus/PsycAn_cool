@@ -145,6 +145,7 @@ VAV_wd      VAV to be used in Jupyter widgets.
 import numpy as np
 import pandas as pd
 import psychro as psy
+from scipy.optimize import least_squares
 
 
 # constants
@@ -344,7 +345,7 @@ class MxCcRhTzBl:
         ---------------------
         x           given by *self.lin_model(self, θs0)*
         """
-        from scipy.optimize import least_squares
+        # from scipy.optimize import least_squares
 
         def ε(m):
             """
@@ -421,7 +422,7 @@ class MxCcRhTzBl:
         ---------------------
         x           given by *self.lin_model(self, θs0)*
         """
-        from scipy.optimize import least_squares
+        # from scipy.optimize import least_squares
 
         def ε(β):
             """
@@ -612,8 +613,6 @@ class MxCcRhTzBl:
             m=self.actual[0], mo=self.actual[1], β=self.actual[2]))
         self.psy_chart(x, θo, φo)
 
-        return x
-
     def VAV_wd(self, value='θ4', sp=14, θo=32, φo=0.7, θ5sp=24, φ5sp=0.5,
                mi=0.90, UA=690, QsBL=18_000, QlBL=2_500):
         """
@@ -679,23 +678,23 @@ class MxCcRhTzBl:
 
 # TESTS: uncomment
 #
-# Kθ, Kw = 1e10, 0     # Kw can be 0
-# β = 0
+Kθ, Kw = 1e10, 0     # Kw can be 0
+β = 0.16
 
-# m, mo = 3.093, 0.94179
-# θo, φo = 32, 0.5
-# θ5sp, φ5sp = 26, 0.5
+m, mo = 3.093, 0.94179
+θo, φo = 32, 0.5
+θ5sp, φ5sp = 26, 0.5
 
-# mi = 15e3 / (l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)))   # kg/s
-# UA = 45e3 / (θo - θ5sp) - mi * c                        # W/K
-# QsBL, QlBL = 0, 0     # W
+mi = 15e3 / (l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)))   # kg/s
+UA = 45e3 / (θo - θ5sp) - mi * c                        # W/K
+QsBL, QlBL = 0, 0     # W
 
-# print(f'QsTZ = {(UA + mi * c) * (θo - θ5sp): ,.1f} W')
-# print(f'QlTZ = {mi * l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)): ,.1f} W')
+print(f'QsTZ = {(UA + mi * c) * (θo - θ5sp): ,.1f} W')
+print(f'QlTZ = {mi * l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)): ,.1f} W')
 
-# parameters = m, mo, β, Kθ, Kw
-# inputs = θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
-# cool = MxCcRhTzBl(parameters, inputs)
+parameters = m, mo, β, Kθ, Kw
+inputs = θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
+cool = MxCcRhTzBl(parameters, inputs)
 
 # # 1. CAV
 # print('\nCAV: m given')
@@ -709,15 +708,15 @@ class MxCcRhTzBl:
 # # 3.
 # print('\nVAV: control φI')
 # cool.VAV_wd('φ5', 0.5, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
-# # 4.
+# 4.
 # print('\nVBP: control φI')
 # wIsp = psy.w(26, 0.5)
 # m = 3.5
 # cool.actual[0] = m
 # # cool.VBP_wd('wI', wIsp)
-# φI = 0.4
-# x = cool.VBP_wd('φ5', φI, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
-# # cool.VBP_wd('wI', wIsp, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
+# φ5 = 0.5
+# x = cool.VBP_wd('φ5', φ5, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
+# cool.VBP_wd('wI', wIsp, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
 
 # """
 # Two solutions as a function of β0:
