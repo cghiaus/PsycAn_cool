@@ -1,6 +1,6 @@
 # Psychrometric analysis of cooling systems as a control problem
 
-Python and Jupyter notbook related to the paper:
+Python code and Jupyter notbook related to the paper:
 
 C. Ghiaus (2021) Computational psychrometric analysis of cooling systems as a control problem, International Journal of Building Performance Simulation
 
