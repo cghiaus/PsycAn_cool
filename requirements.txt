@@ -1,6 +1,4 @@
-matplotlib
-numpy
-scipy
-jupyterlab-toc
-ipywidgets
-jupyter_contrib_nbextensions
+ipywidgets==7.5.1
+matplotlib==3.3.2
+numpy==1.19.2
+scipy==1.5.2
