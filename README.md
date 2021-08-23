@@ -2,6 +2,10 @@
 
 Cooling systems as an inverse (control) problem.
 
+Python and Jupyter notbook related to the paper:
+
+C. Ghiaus (2021) Computational psychrometric analysis of cooling systems as a control problem, International Journal of Building Performance Simulation
+
 **Contents**
 - `cool.ipynb` Jupyter notebook with widgets;
 - `cool.py` Python module implementing the psychrometric analysis;
