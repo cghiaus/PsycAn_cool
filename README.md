@@ -8,6 +8,7 @@ Cooling systems as an inverse (control) problem.
 - `psychro.py` Python module for psycrhrometrics.
 
 **Instructions**
+
 To experiment with `cool.ipynb` notebook:
 - Access the repository on Binder: click the button [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsychrAn_cool/HEAD).
 - Wait while the repository is starting.
