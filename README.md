@@ -1,6 +1,4 @@
-# Psychrometric analysis of cooling systems
-
-Cooling systems as an inverse (control) problem.
+# Psychrometric analysis of cooling systems as a control problem
 
 Python and Jupyter notbook related to the paper:
 
