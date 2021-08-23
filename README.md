@@ -9,7 +9,7 @@ Cooling systems as an inverse (control) problem.
 
 To experiment with `cool.ipynb` notebook:
 - Select the notebook
-- Kernel / Restart & Run All or >> icon
+- Click: `Kernel / Restart & Run All` or `>>` icon
 - Click: `Restart and Run All Cells`
 - Play with the widgets
 
