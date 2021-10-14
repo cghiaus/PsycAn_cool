@@ -126,6 +126,7 @@ def chart(t, w,
         ax.annotate(s_phi + ' %', xy=(t_range[-1] - 3, w4t[-1]))
 
     plt.plot(t, w, linewidth=3)    # processes
+    plt.draw()
     plt.show()
     return None
 
@@ -182,4 +183,6 @@ def chartA(t, wv, A,
         # plot no. point
         for j in range(0, np.shape(tk)[1]):
             plt.text(t[tk][j], wv[tk][j], str(tk[0][j]))
+    plt.draw()
+    plt.show()
     return None
