@@ -678,23 +678,23 @@ class MxCcRhTzBl:
 
 # TESTS: uncomment
 #
-Kθ, Kw = 1e10, 0     # Kw can be 0
-β = 0.16
+# Kθ, Kw = 1e10, 0     # Kw can be 0
+# β = 0.16
 
-m, mo = 3.093, 0.94179
-θo, φo = 32, 0.5
-θ5sp, φ5sp = 26, 0.5
+# m, mo = 3.093, 0.94179
+# θo, φo = 32, 0.5
+# θ5sp, φ5sp = 26, 0.5
 
-mi = 15e3 / (l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)))   # kg/s
-UA = 45e3 / (θo - θ5sp) - mi * c                        # W/K
-QsBL, QlBL = 0, 0     # W
+# mi = 15e3 / (l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)))   # kg/s
+# UA = 45e3 / (θo - θ5sp) - mi * c                        # W/K
+# QsBL, QlBL = 0, 0     # W
 
-print(f'QsTZ = {(UA + mi * c) * (θo - θ5sp): ,.1f} W')
-print(f'QlTZ = {mi * l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)): ,.1f} W')
+# print(f'QsTZ = {(UA + mi * c) * (θo - θ5sp): ,.1f} W')
+# print(f'QlTZ = {mi * l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)): ,.1f} W')
 
-parameters = m, mo, β, Kθ, Kw
-inputs = θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
-cool = MxCcRhTzBl(parameters, inputs)
+# parameters = m, mo, β, Kθ, Kw
+# inputs = θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
+# cool = MxCcRhTzBl(parameters, inputs)
 
 # # 1. CAV
 # print('\nCAV: m given')
