@@ -20,12 +20,14 @@ To experiment with `cool.ipynb` notebook:
 
 *Note*: A `RuntimeWarning: invalid value encountered in log` may be issued. In this case, select from the pull-down menu: `Kernel / Restart & Run all` then : `Restart and Run All Cells` or click on the double arrow icon `>>`.
 
+Repository
+
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsycAn_cool/HEAD)
 
-Jupyter Lab
+Notebook on Jupyter Lab
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsycAn_cool/HEAD?urlpath=lab/tree/cool.ipynb)
 
-Jupyter
+Notebook on Jupyter
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsycAn_cool/HEAD?urlpath=/tree/cool.ipynb)
