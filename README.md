@@ -12,7 +12,7 @@ C. Ghiaus (2021) Computational psychrometric analysis of cooling systems as a co
 **Instructions**
 
 To experiment with `cool.ipynb` notebook:
-- Access the repository on Binder: click the button [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsycAn_cool/HEAD).
+- Access the repository on Binder: click the button [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsychroAn_cool/HEAD).
 - Wait while the repository is starting.
 - Select the Jupyter notebook `cool.ipynb`.
 - Run the notebook by clicking the double arrow icon `>>`or by selecting from the pull-down menu: `Kernel / Restart & Run all` then clicking: `Restart and Run All Cells`.
