@@ -22,12 +22,12 @@ To experiment with `cool.ipynb` notebook:
 
 Repository
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsycAn_cool/HEAD)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsychroAn_cool/HEAD)
 
 Notebook on Jupyter Lab
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsycAn_cool/HEAD?urlpath=lab/tree/cool.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsychroAn_cool/HEAD?urlpath=lab/tree/cool.ipynb)
 
 Notebook on Jupyter
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsycAn_cool/HEAD?urlpath=/tree/cool.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsychroAn_cool/HEAD?urlpath=/tree/cool.ipynb)
