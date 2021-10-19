@@ -18,7 +18,6 @@ To experiment with `cool.ipynb` notebook:
 - Run the notebook by clicking the double arrow icon `>>`or by selecting from the pull-down menu: `Kernel / Restart & Run all` then clicking: `Restart and Run All Cells`.
 - Change the values of the widgets for the psychrometric representations.
 
-*Note*: A `RuntimeWarning: invalid value encountered in log` may be issued. In this case, select from the pull-down menu: `Kernel / Restart & Run all` then : `Restart and Run All Cells` or click on the double arrow icon `>>`.
 
 Repository
 
