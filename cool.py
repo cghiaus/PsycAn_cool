@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon May 31 18:50:35 2021
-
-@author: cghiaus
 Created on Thu Mar 25 07:14:57 2021
 
-mo  outdoor mass flow rate as an input.
+@author: cghiaus
 
-
-Cooling as a control & parameter optimizaton problem
-OOP implementation
-Recycling, Cooling & desumidification (with by-pass), reheating
+Accompany the paper:
+C. Ghiaus (2021) Computational psychrometric analysis of cooling systems
+as a control problem: case of cooling and dehumidification systems,
+International Journal of Building Performance Simulation
+DOI: 10.1080/19401493.2021.1995498
 
 GENERALITIES
 ========================================================================
@@ -24,16 +22,18 @@ Nomenclature
     β, by-pass factor of the cooling coil, 0 ≤ β ≤ 1
 
 Points on the psychrometric chart (θ, w):
-o) out      outdoor air
-0) M        mixed: outdoor + recycled air
-1) s        efective coil surface or Apparatus Dew Point (ADP)
-2) C        coil leaving air (saturated mixed with by-passed)
-3) S        supply air
-4) I, R, E  indoor, exhausted, recycled air
+    o) out      outdoor air
+    0) M        mixed: outdoor + recycled air
+    1) s        efective coil surface or Apparatus Dew Point (ADP)
+    2) C        coil leaving air (saturated mixed with by-passed)
+    3) S        supply air
+    4) I, R, E  indoor, exhausted, recycled air
 
 
 Constant Air Volume (CAV): linear control problem
 -------------------------------------------------
+[§5 and Figure 5 in Ghiaus (2021)]
+
   E                                     I
 <=4=====================================4========================
   mo     ||                             m                      ||
@@ -54,7 +54,7 @@ Inputs:
 θo, φo      outdoor temperature & humidity ratio (=o=)
 θ5sp, φ5sp  indoor temperature & humidity ratio set points (<-θI, <-φI)
 mi          infiltration mass flow rate (<-mi)
-QsBL, QlBL    auxiliary sensible and latent loads ([BL] sl)
+QsBL, QlBL  auxiliary sensible and latent loads ([BL] sl)
 
 Parameters:
 m           mass flow rate of dry air
@@ -62,7 +62,7 @@ mo          mass flow rate of outdoor dry air
 β           by-pass factir od cooling coil
 UA          overall heat transfer coefficient of the building ([BL])
 
-Elements (16 equations):
+Elements (16 equations) [Table 6 in Ghiaus (2021)]:
 MR          mixing with given mass flow rate (2 equations)
 CC          cooling coil (4 equations)
 MX          mixing with given ratio (2 equations)
@@ -73,18 +73,18 @@ Kθ          indoor temperature controller (1 equation)
 Kw          indoor humidity controller (1 equation)
 F           fan (m is a given parameter)
 
-Outputs (16 unknowns):
+Outputs (16 unknowns) [Table 5 in Ghiaus (2021)]:
 0, ..., 4   temperature and humidity ratio (10 unknowns)
 Qt, Qs, Ql  total, sensible and latent heat of CC (3 unknowns)
 Qs          sensible heat of HC (1 unknown)
 Qs, Ql      sensible and latent heat of TZ (2 unknowns)
 
 
-VAV System with linear & least-squares controllers for  & θS
-------------------------------------------------------------------
-
+VAV System with linear & least-squares controllers
+--------------------------------------------------
 linear controller (Kθ & Kw) for θI, φI
 non-linear controller (ls) for θS
+[§6.2 and Figures  11, 13 & 15 in Ghiaus (2021)]
 
 <=4================================m==========================
        ||                                                   ||
@@ -103,7 +103,7 @@ mo===>[MX1]==0==||          [MX2]==2==[HC]==F===3=>[TZ]==4==||
 
 Inputs:
 θo, φo      outdoor temperature & relative humidity
-θI, φI      indoor air temperature and humidity
+θI, φI      indoor air temperature & relative humidity
 θS          supply air temperature
 QsTZ        sensible heat load of TZ
 QlTZ        latent heat load of TZ
@@ -126,21 +126,19 @@ Parameter:
 m           mass flow rate of dry air (1 unknown)
 
 
-CONTENTS (methods)
+METHODS
 ========================================================================
 __init__    Initialization of CcTZ object.
 lin_model   Solves the set of linear equations
-            with saturation curve linearized around ts0
+            with saturation curve linearized around θs0
 solve_lin   Solves iteratively the lin_model s.t. the error of
-            humid. ratio between two iterrations is approx. zero
+            humidity ratio between two iterrations is approx. zero
             (i.e. solves ws = f(θs) for saturation curve).
-m_ls        Finds m s.t. θS = θSsp (solves θS - θSsp = 0 for m).
+m_ls        Finds mass flow rate m s.t. θS = θSsp (solves θS - θSsp = 0 for m).
             Uses least-squares to find m that minimizes θS - θSsp
-psy_chart   Draws psychrometric chart (imported from psychro)
-CAV_wd      CAV to be used in Jupyter widgets.
-            solve_lin and draws psy_chart.
-VAV_wd      VAV to be used in Jupyter widgets.
-            m_ls and draws psy_chart.
+psy_chart   Draws psychrometric chart (imported from psychro.py)
+CAV_wd      CAV is used in Jupyter widgets; uses solve_lin and draws psy_chart.
+VAV_wd      VAV is used in Jupyter widgets; uses m_ls and draws psy_chart.
 """
 import numpy as np
 import pandas as pd
@@ -153,14 +151,15 @@ c = 1e3         # J/kg K, air specific heat
 l = 2496e3      # J/kg, latent heat
 
 # to be used in self.m_ls / least_squares
-m_max = 100     # ks/s, max dry air mass flow rat
+m_max = 100     # ks/s, max dry air mass flow rate
 θs_0 = 5        # °C, initial guess for saturation temperature
 
 
 class MxCcRhTzBl:
     """
-    **HVAC composition**:
+    HVAC composition:
         mixing, cooling, reaheating, thermal zone of building, recycling
+        [Figure 4 in Ghiaus (2021)]
     """
 
     def __init__(self, parameters, inputs):
@@ -169,7 +168,7 @@ class MxCcRhTzBl:
 
         self.design = np.array([m, mo, β, Kθ, Kw,       # parameters
                                 θo, φo, θ5sp, φ5sp,     # inputs air out, in
-                                mi, UA, QsBL, QlBL])      # --"--  building
+                                mi, UA, QsBL, QlBL])    # --"--  building
         self.actual = np.array([m, mo, β, Kθ, Kw,
                                 θo, φo, θ5sp, φ5sp,
                                 mi, UA, QsBL, QlBL])
@@ -177,7 +176,7 @@ class MxCcRhTzBl:
     def lin_model(self, θs0):
         """
         Linear control problem.
-            Solves a set of 16 linear equations.
+            Solves a set of 16 linear equations [§5 in Ghiaus (2021)]
 
             Saturation curve ws = f(θs) is linearized in θs0.
 
@@ -189,11 +188,11 @@ class MxCcRhTzBl:
 
 
         Model parameter from function call
-        ----------------------------
+        ----------------------------------
         θs0     °C, temperature for which the saturation curve is liniarized
 
         Model parameters and inputs from object
-        ---------------------
+        ---------------------------------------
         m, mo, θo, φo, θ5sp, φ5sp, β, mi, UA, QsBL, QlBL = self.actual
 
 
@@ -201,15 +200,15 @@ class MxCcRhTzBl:
 
         - mo          mass flow rate of outdoor dry air
 
-        - θo, φo      outdoor temperature & humidity ratio
+        - θo, φo      outdoor temperature & relative humidity
 
-        - θ5sp, φ5sp  indoor temperature & humidity ratio set points
+        - θ5sp, φ5sp  indoor temperature & relative humidity set points
 
-        - mi          infiltration mass flow rate
+        - mi          air infiltration mass flow rate
 
-        - QsBL, QlBL    auxiliary sensible and latent loads
+        - QsBL, QlBL  auxiliary sensible and latent loads
 
-        - β           by-pass factir od cooling coil
+        - β           by-pass factor of cooling coil
 
         - UA          overall heat transfer coefficient of the building
 
@@ -221,6 +220,9 @@ class MxCcRhTzBl:
         | N° of equations| 2  | 4  |  2 | 2  | 2  | 2  | 1  | 1  |
         +----------------+----+----+----+----+----+----+----+----+
 
+        [Table 6 in Ghiaus (2021)]
+
+
         Returns (16 unknowns)
         ---------------------
         x :
@@ -230,8 +232,12 @@ class MxCcRhTzBl:
 
         - heat flow rates:
             QtCC, QsCC, QlCC, QsHC, QsTZ, QlTZ
+
+        [Table 5 in Ghiaus(2021)]
         """
         """
+
+    [Figure 5 in Ghiaus(2021)]
 
       E                                     I
     <=4=====================================4========================
@@ -255,6 +261,8 @@ class MxCcRhTzBl:
         A = np.zeros((16, 16))  # matrix of coefficents of unknowns
         b = np.zeros(16)        # vector of inputs
 
+        # System of equations from Table 6 (Ghiaus, 2021)
+        # Unknowns defined in Table 5 (Ghiaus, 2021)
         # MR
         A[0, 0], A[0, 8], b[0] = m * c, -(m - mo) * c, mo * c * θo
         A[1, 1], A[1, 9], b[1] = m * l, -(m - mo) * l, mo * l * wo
@@ -296,9 +304,11 @@ class MxCcRhTzBl:
 
             θs -> θs0 until ws - psy(θs, 1) < ε.
 
+            Algorithm 1 in Ghiaus (2021)
+
         Parameters
         ----------
-        θs0     initial guess saturation temperature
+        θs0     initial guess for saturation temperature
 
         Method from object
         ---------------------
@@ -309,17 +319,90 @@ class MxCcRhTzBl:
         x of *self.lin_model(self, θs0)*
         """
         ε = 0.01e-3     # admisible error for ws
-        # Δ_ws = 2 * ε    # kg/kg, initial difference to start the iterations
-        # while Δ_ws > ε:
-        #     x = self.lin_model(θs0)
-        #     Δ_ws = abs(psy.w(x[2], 1) - x[3])   # psy.w(θs, 1) = ws
-        #     θs0 = x[2]                          # actualize θs0
-        while True:
-            x = self.lin_model(θs0)
+        while True:                             # repeat
+            x = self.lin_model(θs0)             # solve A * x = b
             Δ_ws = abs(psy.w(x[2], 1) - x[3])   # psy.w(θs, 1) = ws
             θs0 = x[2]                          # actualize θs0
-            if Δ_ws < ε:
+            if Δ_ws < ε:                        # until Δ_ws < ε
                 break
+            elif θs0 < -100 or θs0 > 100:
+                print("\n================================================")
+                print(f'ERROR in solve_lin: no solution, θs0 = {θs0: .2f} °C')
+                print("===============================================\n ")
+                break
+        return x
+
+    def β_ls(self, value, sp):
+        """
+        Bypass β controls supply temperature θS or indoor humidity wI.
+            Finds β which solves *value = sp*, i.e. minimizes *ε = value - sp*.
+
+            Uses *scipy.optimize.least_squares* to solve the non-linear system.
+
+            Algorithm 2 in Ghiaus (2021)
+
+        Parameters
+        ----------
+        value   (type string): 'θS' or 'wI' controlled variable
+
+        sp      (type float): value of controlled variable setpoint
+
+        Calls
+        -----
+        ε(m)    gives (value - sp) to be minimized for m
+
+        Returns (16 unknowns)
+        ---------------------
+        x       given by *self.lin_model(self, θs0)*
+                list of unknowns given in Table 5 in Ghiaus (2021)
+        """
+
+        def ε(β):
+            """
+            Returns difference ε = (values - sp) function of by-pass β
+                ε  calculated by self.solve_lin(ts0)
+
+            Parameters
+            ----------
+            β : by-pass factor of the cooling coil
+
+            From object
+
+                Method: self.solve.lin(θs0)
+
+                Variables: self.actual <- m (used in self.solve.lin)
+
+            Returns
+            -------
+            ε = |value - sp|: abs. difference between value and its set point
+            """
+            self.actual[2] = β
+            x = self.solve_lin(θs_0)
+            if value == 'θ5':
+                θS = x[6]       # supply air
+                return abs(sp - θS)
+            elif value == 'φ5':
+                wI = x[9]       # indoor air
+                return abs(sp - wI)
+            else:
+                print('ERROR in ε(β): value not in {"θS", "wI"}')
+
+        β0 = 0.1                # initial guess
+        if value == 'φ5':
+            self.actual[4] = 0
+            sp = psy.w(self.actual[7], sp)  # w5 = f(θ5, φ5)
+
+        # gives β for min(θSsp - θS); β0 is the initial guess of β
+        # min ε(β) subject to 0 < β < 1; β0 initial guess
+        res = least_squares(ε, β0, bounds=(0, 1))
+
+        if res.cost < 1e-5:     # res.cost = min ε(β) s.t. 0 < β < 1
+            β = float(res.x)    # res.x = arg min ε(β) s.t. 0 < β < 1
+        else:
+            print('RecAirVBP: No solution for β')
+
+        self.actual[2] = β
+        x = self.solve_lin(θs_0)
         return x
 
     def m_ls(self, value, sp):
@@ -331,6 +414,8 @@ class MxCcRhTzBl:
 
             Uses *scipy.optimize.least_squares* to solve the non-linear system.
 
+            Algorithm 3 in Ghiaus (2021)
+
         Parameters
         ----------
         value   (type string) 'θS' or 'wI': controlled variable
@@ -339,19 +424,17 @@ class MxCcRhTzBl:
 
         Calls
         -----
-        *ε(m)*  which gives (value - sp) to be minimized for m
+        ε(m)    gives (value - sp) to be minimized for m
 
         Returns (16 unknowns)
         ---------------------
         x           given by *self.lin_model(self, θs0)*
+                    list of unknowns given in Table 5 in Ghiaus (2021)
         """
-        # from scipy.optimize import least_squares
 
         def ε(m):
             """
-            (m)
-
-            Returns difference (value - sp) as a function of m
+            Returns difference ε = (value - sp) as a function of m
 
                 ε  calculated by self.solve_lin(θs0)
 
@@ -362,6 +445,7 @@ class MxCcRhTzBl:
             m : mass flow rate of dry air
 
             From object
+
                 Method: self.solve.lin(θs0)
 
                 Variables: self.actual <- m (used in self.solve.lin)
@@ -385,6 +469,7 @@ class MxCcRhTzBl:
         if value == 'φ5':
             self.actual[4] = 0  # Kw = 0; no reheating
             sp = psy.w(self.actual[7], sp)  # w5 = f(θ5, φ5)
+
         # gives m for min(θSsp - θS); m0 is the initial guess of m
         # min ε(m) subject to 0 < m < m_max; m0 initial guess
         res = least_squares(ε, m0, bounds=(0, m_max))
@@ -396,77 +481,6 @@ class MxCcRhTzBl:
 
         self.actual[0] = m
 
-        x = self.solve_lin(θs_0)
-        return x
-
-    def β_ls(self, value, sp):
-        """
-        (self, value, sp)
-
-        Bypass β controls supply temperature θS or indoor humidity wI.
-            Finds β which solves *value = sp*, i.e. minimizes *ε = value - sp*.
-
-            Uses *scipy.optimize.least_squares* to solve the non-linear system.
-
-        Parameters
-        ----------
-        value   (type string): 'θS' od 'wI' type of controlled variable
-
-        sp      (type float): value of setpoint
-
-        Calls
-        -----
-        *ε(m)*  gives (value - sp) to be minimized for m
-
-        Returns (16 unknowns)
-        ---------------------
-        x           given by *self.lin_model(self, θs0)*
-        """
-        # from scipy.optimize import least_squares
-
-        def ε(β):
-            """
-            Gives difference ε = (values - sp) function of β
-                ε  calculated by self.solve_lin(ts0)
-                β   bounds=(0, 1)
-
-            Parameters
-            ----------
-            β : by-pass factor of the cooling coil
-
-            From object
-                Method: self.solve.lin(θs0)
-                Variables: self.actual <- m (used in self.solve.lin)
-            Returns
-            -------
-            ε = value - sp: difference between value and its set point
-            """
-            self.actual[2] = β
-            x = self.solve_lin(θs_0)
-            if value == 'θ5':
-                θS = x[6]       # supply air
-                return abs(sp - θS)
-            elif value == 'φ5':
-                wI = x[9]       # indoor air
-                return abs(sp - wI)
-            else:
-                print('ERROR in ε(β): value not in {"θS", "wI"}')
-
-        # β0 = self.actual[2]     # initial guess
-        β0 = 0.1                # initial guess
-        if value == 'φ5':
-            self.actual[4] = 0
-            sp = psy.w(self.actual[7], sp)
-        # gives β for min(θSsp - θS); β0 is the initial guess of β
-        # min ε(β) subject to 0 < β < 1; β0 initial guess
-        res = least_squares(ε, β0, bounds=(0, 1))
-
-        if res.cost < 1e-5:     # res.cost = min ε(β) s.t. 0 < β < 1
-            β = float(res.x)    # res.x = arg min ε(β) s.t. 0 < β < 1
-        else:
-            print('RecAirVBP: No solution for β')
-
-        self.actual[2] = β
         x = self.solve_lin(θs_0)
         return x
 
@@ -488,9 +502,11 @@ class MxCcRhTzBl:
         """
         # Processes on psychrometric chart
         wo = psy.w(θo, φo)
+
         # Points: O, s, S, I
         θ = np.append(θo, x[0:10:2])
         w = np.append(wo, x[1:10:2])
+
         # Points       o   1  2  3  4  5        Elements
         A = np.array([[-1, 1, 0, 0, 0, 1],      # MR
                       [0, -1, 1, 0, 0, 0],      # CC
@@ -506,13 +522,15 @@ class MxCcRhTzBl:
             print('Values out of the phychroetric chart')
 
         θ = pd.Series(θ)
+        φ = 100 * pd.Series(psy.phi(θ, w))
         w = 1000 * pd.Series(w)         # kg/kg -> g/kg
-        P = pd.concat([θ, w], axis=1)   # points
-        P.columns = ['θ [°C]', 'w [g/kg]']
+        P = pd.concat([θ, w, φ], axis=1)   # points
+        P.columns = ['θ [°C]', 'w [g/kg]', 'φ [%]']
 
         output = P.to_string(formatters={
             'θ [°C]': '{:,.2f}'.format,
-            'w [g/kg]': '{:,.2f}'.format})
+            'w [g/kg]': '{:,.2f}'.format,
+            'φ [%]': '{:,.2f}'.format})
         print()
         print(output)
 
@@ -527,9 +545,9 @@ class MxCcRhTzBl:
     def CAV_wd(self, θo=32, φo=0.7, θ5sp=24, φ5sp=0.5,
                mi=0.90, UA=690, QsBL=18_000, QlBL=2_500):
         """
-        Constant air volume (CAV) to be used in Jupyter with widgets
+        Constant air volume (CAV) used in Jupyter with widgets
 
-        Parameters: given in Jupyetr widget
+        Parameters: given by Jupyter widget
         ----------
 
         Returns
@@ -541,12 +559,8 @@ class MxCcRhTzBl:
         # self.actual[[0, 1, 2, 5, 6]] = m, θo, φo, 1000 * QsTZ, 1000 * QlTZ
         self.actual[5:] = np.array([θo, φo, θ5sp, φ5sp,
                                     mi, UA, QsBL, QlBL])
-        # self.actual[5:] = θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
-
         θ0 = 40
         x = self.solve_lin(θ0)
-        # print(f'm = {self.actual[0]: .3f} kg/s,\
-        #       mo = {self.actual[1]: .3f} kg/s')
         print('m = {m: .3f} kg/s, mo = {mo: .3f} kg/s, β = {β: .3f}'.format(
             m=self.actual[0], mo=self.actual[1], β=self.actual[2]))
         self.psy_chart(x, self.actual[5], self.actual[6])
@@ -554,20 +568,42 @@ class MxCcRhTzBl:
     def VBP_wd(self, value='φ5', sp=0.5, θo=32, φo=0.5, θ5sp=24, φ5sp=0.5,
                mi=1.35, UA=675, QsBL=34_000, QlBL=4_000):
         """
-        Variabl by-pass (VBP) to be used in Jupyter with widgets
+        Variable by-pass (VBP) used in Jupyter notebook with widgets
 
         Parameters
         ----------
         value       {"θS", "wI"}' type of value controlled
         sp          set point for the controlled value
         θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
-                    given by widgets in Jupyter Lab
+                    given by widgets in Jupyter notebook
 
         Returns
         -------
         None.
         """
         """
+        §6.1.1 and Figure 9 in Ghiaus (2021)
+        value='φ5' (KwI = 0)
+
+        <=4================================4============================
+                ||                         m                          ||
+                4 (m-mo) =======0=======                              ||
+                ||    M  ||  (1-β)m   ||    C            S         I  ||
+        θo,φo=>[MX1]==0==||          [MX2]==2==[HC]==F===3==>[TZ]==4==||
+         mo              ||         s ||        /   /         //      |
+                         ===0=[CC]==1===       s   m         sl       |
+                              /\\   βm         |             ||       |
+                             t  sl  |          |            [BL]<-mi  |
+                             |      |          |            //        |
+                             |      |          |           sl         |
+                             |      |          |                      |
+                             |      |<-------- | ------ls-------------|<-φI
+                             |                 |<-----[K]-------------|<-wI
+                             |<-----------------------[K]-------------|<-θI
+
+
+
+        §6.1.2 in Ghiaus (2021) (no equivalent figure in Ghiaus (2021))
         value='θS'
 
         <=4================================4============================
@@ -586,24 +622,6 @@ class MxCcRhTzBl:
                              |                 |<-----[K]-------------|<-wI
                              |<-----------------------[K]-------------|<-θI
 
-
-        value='φ5' (KwI = 0)
-
-        <=4================================4============================
-                ||                         m                          ||
-                4 (m-mo) =======0=======                              ||
-                ||    M  ||  (1-β)m   ||    C            S         I  ||
-        θo,φo=>[MX1]==0==||          [MX2]==2==[HC]==F===3==>[TZ]==4==||
-         mo              ||         s ||        /   /         //      |
-                         ===0=[CC]==1===       s   m         sl       |
-                              /\\   βm         |             ||       |
-                             t  sl  |          |            [BL]<-mi  |
-                             |      |          |            //        |
-                             |      |          |           sl         |
-                             |      |          |                      |
-                             |      |<-------- | ------ls-------------|<-φI
-                             |                 |<-----[K]-------------|<-wI
-                             |<-----------------------[K]-------------|<-θI
         """
         # Design values
         self.actual[5:] = θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
@@ -616,21 +634,22 @@ class MxCcRhTzBl:
     def VAV_wd(self, value='θ4', sp=14, θo=32, φo=0.7, θ5sp=24, φ5sp=0.5,
                mi=0.90, UA=690, QsBL=18_000, QlBL=2_500):
         """
-        Variable air volume (VAV) to be used in Jupyter with widgets
+        Variable air volume (VAV) used in Jupyter with widgets
 
         Parameters
         ----------
         value       {"θS", "wI"}' type of value controlled
         sp          set point for the controlled value
         θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
-                    given by widgets in Jupyter Lab
+                    given by widgets in Jupyter notebook
 
         Returns
         -------
         None.
         """
         """
-        value='θS' (KwI = 0)
+        §6.2.3 and Figure 15 in Ghiaus (2021)
+        value='wI' (KwI = 0)
 
         <=4================================4===========================
                 ||                         m                          ||
@@ -648,6 +667,9 @@ class MxCcRhTzBl:
                              |                 |<-----[K]-------------|<-wI
                              |<-----------------------[K]-------------|<-θI
 
+
+
+        §6.2.3 and Figure 15 in Ghiaus (2021)
         value='wI' (KwI = 0)
 
         <=4================================4===========================
@@ -655,14 +677,14 @@ class MxCcRhTzBl:
                 4 (m-mo) =======0=======                              ||
                 ||    M  ||  (1-β)m   ||    C            S         I  ||
         θo,φo=>[MX1]==0==||          [MX2]==2==[HC]==F===3==>[TZ]==4==||
-         mo              ||         s ||        /   /         //      |
-                         ===0=[CC]==1===       s   m         sl       |
-                              /\\   βm         |   |         ||       |
-                             t  sl             |   |        [BL]<-mi  |
-                             |                 |   |         //       |
-                             |                 |   |        sl        |
-                             |                 |   |                  |
-                             |                 |   |--ls--------------|<-wI
+         mo              ||         s ||        /   /    |    //      |
+                         ===0=[CC]==1===       s   m     |   sl       |
+                              /\\   βm         |   |     |   ||       |
+                             t  sl             |   |     |  [BL]<-mi  |
+                             |                 |   |     |   //       |
+                             |                 |   |     |  sl        |
+                             |                 |   |     |            |
+                             |                 |   |--ls-|<-wS        |
                              |                 |<-----[K]-------------|<-wI
                              |<-----------------------[K]-------------|<-θI
 
@@ -674,73 +696,3 @@ class MxCcRhTzBl:
         print('m = {m: .3f} kg/s, mo = {mo: .3f} kg/s, β = {β: .3f}'.format(
             m=self.actual[0], mo=self.actual[1], β=self.actual[2]))
         self.psy_chart(x, θo, φo)
-
-
-# TESTS: uncomment
-#
-# Kθ, Kw = 1e10, 0     # Kw can be 0
-# β = 0.16
-
-# m, mo = 3.093, 0.94179
-# θo, φo = 32, 0.5
-# θ5sp, φ5sp = 26, 0.5
-
-# mi = 15e3 / (l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)))   # kg/s
-# UA = 45e3 / (θo - θ5sp) - mi * c                        # W/K
-# QsBL, QlBL = 0, 0     # W
-
-# print(f'QsTZ = {(UA + mi * c) * (θo - θ5sp): ,.1f} W')
-# print(f'QlTZ = {mi * l * (psy.w(θo, φo) - psy.w(θ5sp, φ5sp)): ,.1f} W')
-
-# parameters = m, mo, β, Kθ, Kw
-# inputs = θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
-# cool = MxCcRhTzBl(parameters, inputs)
-
-# # 1. CAV
-# print('\nCAV: m given')
-# cool.CAV_wd()
-# cool.CAV_wd(θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
-# # 2.
-# print('\nVAV: control θS')
-# θSsp = 11.45
-# # cool.VAV_wd('θS', θSsp)
-# cool.VAV_wd('θS', θSsp, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
-# # 3.
-# print('\nVAV: control φI')
-# cool.VAV_wd('φ5', 0.5, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
-# 4.
-# print('\nVBP: control φI')
-# wIsp = psy.w(26, 0.5)
-# m = 3.5
-# cool.actual[0] = m
-# # cool.VBP_wd('wI', wIsp)
-# φ5 = 0.5
-# x = cool.VBP_wd('φ5', φ5, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
-# cool.VBP_wd('wI', wIsp, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
-
-# """
-# Two solutions as a function of β0:
-#     β0 = 0.1 ... 0.4 -> β = 0.101
-#     β0 = 0.5 ... 0.9 -> β = 0.743
-# Explanation
-# The thermal zone characteristics cuts the saturation curve in two points.
-# """
-
-# """
-# Controlling θS with β: NO SOLUTION
-# Explanation
-# Cannot have imposed m, θS, θI and QsTZ.
-# Given θI and QsTZ:
-#     either m --> θS
-#     or θS --> m
-# """
-# print('\nVBP: control θS')
-# θSsp = 11.77
-# m = 3.162
-# cool.actual[0] = m
-# cool.VBP_wd('θS', θSsp, θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)
-
-
-# Kw = 1e10
-# cool.actual[4] = Kw
-# cool.CAV_wd(θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL)

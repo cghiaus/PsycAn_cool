@@ -91,6 +91,18 @@ def v(t, w, Z=0):
     return v
 
 
+def phi(t, w, Z=0):
+    """
+    Relative humidity as a function of temperature and humidity ratio
+    for a given altitude (default 0 m)
+    t : temperature [°C]
+    w : humidity ratio [kg/kg_da]
+    Z : altitude [m]; default value = 0
+    """
+    phi = p(Z) / pvs(t) * w / (Mv / Mda + w)
+    return phi
+
+
 def chart(t, w,
           t_range=np.arange(-10, 50, 0.1),
           w_range=np.arange(0, 0.030, 0.0001)):
