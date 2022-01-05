@@ -20,8 +20,11 @@ To experiment with a `cool_fig_*.ipynb` notebook:
 - Change the values of the widgets for the psychrometric representations.
 
 The notebooks may run interactively on Binder.
-
+Zenoda
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/zenodo/10.5281/zenodo.5579167/)
+
+Github
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsychroAn_cool/HEAD)
 
 **Licence**
 
