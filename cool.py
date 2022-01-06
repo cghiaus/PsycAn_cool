@@ -3,12 +3,14 @@
 """
 Created on Thu Mar 25 07:14:57 2021
 
-@author: cghiaus
+@author: Christian Ghiaus
 
 Accompany the paper:
-C. Ghiaus (2021) Computational psychrometric analysis of cooling systems
+
+C. Ghiaus (2022) Computational psychrometric analysis of cooling systems
 as a control problem: case of cooling and dehumidification systems,
-International Journal of Building Performance Simulation
+International Journal of Building Performance Simulation,
+vol. 15, no. 1, p. 21-38
 DOI: 10.1080/19401493.2021.1995498
 
 GENERALITIES
@@ -32,7 +34,7 @@ Points on the psychrometric chart (θ, w):
 
 Constant Air Volume (CAV): linear control problem
 -------------------------------------------------
-[§5 and Figure 5 in Ghiaus (2021)]
+[§5 and Figure 5 in Ghiaus (2022)]
 
   E                                     I
 <=4=====================================4========================
@@ -62,7 +64,7 @@ mo          mass flow rate of outdoor dry air
 β           by-pass factir od cooling coil
 UA          overall heat transfer coefficient of the building ([BL])
 
-Elements (16 equations) [Table 6 in Ghiaus (2021)]:
+Elements (16 equations) [Table 6 in Ghiaus (2022)]:
 MR          mixing with given mass flow rate (2 equations)
 CC          cooling coil (4 equations)
 MX          mixing with given ratio (2 equations)
@@ -73,7 +75,7 @@ Kθ          indoor temperature controller (1 equation)
 Kw          indoor humidity controller (1 equation)
 F           fan (m is a given parameter)
 
-Outputs (16 unknowns) [Table 5 in Ghiaus (2021)]:
+Outputs (16 unknowns) [Table 5 in Ghiaus (2022)]:
 0, ..., 4   temperature and humidity ratio (10 unknowns)
 Qt, Qs, Ql  total, sensible and latent heat of CC (3 unknowns)
 Qs          sensible heat of HC (1 unknown)
@@ -84,7 +86,7 @@ VAV System with linear & least-squares controllers
 --------------------------------------------------
 linear controller (Kθ & Kw) for θI, φI
 non-linear controller (ls) for θS
-[§6.2 and Figures  11, 13 & 15 in Ghiaus (2021)]
+[§6.2 and Figures  11, 13 & 15 in Ghiaus (2022)]
 
 <=4================================m==========================
        ||                                                   ||
@@ -157,9 +159,11 @@ m_max = 100     # ks/s, max dry air mass flow rate
 
 class MxCcRhTzBl:
     """
-    HVAC composition:
-        mixing, cooling, reaheating, thermal zone of building, recycling
-        [Figure 4 in Ghiaus (2021)]
+    HVAC system composition [Figure 4 in Ghiaus (2022)]:
+        - mixing recycled and outdoor air (MR),
+        - cooling coil and by-pass (CC and MX),
+        - reaheating (HC),
+        - thermal zone (TZ) of the building (BL)
     """
 
     def __init__(self, parameters, inputs):
@@ -176,7 +180,7 @@ class MxCcRhTzBl:
     def lin_model(self, θs0):
         """
         Linear control problem.
-            Solves a set of 16 linear equations [§5 in Ghiaus (2021)]
+            Solves a set of 16 linear equations [§5 in Ghiaus (2022)]
 
             Saturation curve ws = f(θs) is linearized in θs0.
 
@@ -212,7 +216,7 @@ class MxCcRhTzBl:
 
         - UA          overall heat transfer coefficient of the building
 
-        Equations (16)
+        Equations (16) [Table 6 in Ghiaus (2022)]
         -------------
         +----------------+----+----+----+----+----+----+----+----+
         | Element        | MR | CC | MX | HC | TZ | BL | Kθ | Kw |
@@ -220,10 +224,8 @@ class MxCcRhTzBl:
         | N° of equations| 2  | 4  |  2 | 2  | 2  | 2  | 1  | 1  |
         +----------------+----+----+----+----+----+----+----+----+
 
-        [Table 6 in Ghiaus (2021)]
 
-
-        Returns (16 unknowns)
+        Returns (16 unknowns) [Table 5 in Ghiaus (2022)]
         ---------------------
         x :
 
@@ -233,11 +235,11 @@ class MxCcRhTzBl:
         - heat flow rates:
             QtCC, QsCC, QlCC, QsHC, QsTZ, QlTZ
 
-        [Table 5 in Ghiaus(2021)]
-        """
         """
 
-    [Figure 5 in Ghiaus(2021)]
+        """
+
+    [Figure 5 in Ghiaus (2022)]
 
       E                                     I
     <=4=====================================4========================
@@ -304,7 +306,7 @@ class MxCcRhTzBl:
 
             θs -> θs0 until ws - psy(θs, 1) < ε.
 
-            Algorithm 1 in Ghiaus (2021)
+            Algorithm 1 in Ghiaus (2022)
 
         Parameters
         ----------
@@ -339,7 +341,7 @@ class MxCcRhTzBl:
 
             Uses *scipy.optimize.least_squares* to solve the non-linear system.
 
-            Algorithm 2 in Ghiaus (2021)
+            Algorithm 2 in Ghiaus (2022)
 
         Parameters
         ----------
@@ -349,17 +351,18 @@ class MxCcRhTzBl:
 
         Calls
         -----
-        ε(m)    gives (value - sp) to be minimized for m
+        ε(m)    gives *(value - sp)* to be minimized for *m*
 
         Returns (16 unknowns)
         ---------------------
         x       given by *self.lin_model(self, θs0)*
-                list of unknowns given in Table 5 in Ghiaus (2021)
+                list of unknowns given in Table 5 in Ghiaus (2022)
         """
 
         def ε(β):
             """
             Returns difference ε = (values - sp) function of by-pass β
+
                 ε  calculated by self.solve_lin(ts0)
 
             Parameters
@@ -374,7 +377,7 @@ class MxCcRhTzBl:
 
             Returns
             -------
-            ε = |value - sp|: abs. difference between value and its set point
+            ε = |value - sp|: abs. difference between value and its set point.
             """
             self.actual[2] = β
             x = self.solve_lin(θs_0)
@@ -414,7 +417,7 @@ class MxCcRhTzBl:
 
             Uses *scipy.optimize.least_squares* to solve the non-linear system.
 
-            Algorithm 3 in Ghiaus (2021)
+            Algorithm 3 in Ghiaus (2022)
 
         Parameters
         ----------
@@ -429,7 +432,7 @@ class MxCcRhTzBl:
         Returns (16 unknowns)
         ---------------------
         x           given by *self.lin_model(self, θs0)*
-                    list of unknowns given in Table 5 in Ghiaus (2021)
+                    list of unknowns given in Table 5 in Ghiaus (2022)
         """
 
         def ε(m):
@@ -491,8 +494,9 @@ class MxCcRhTzBl:
         Parameters
         ----------
         x : θM, wM, θs, ws, θC, wC, θS, wS, θI, wI,
-            QtCC, QsCC, QlCC, QsHC, QsTZ, QlTZ
-                    results of self.solve_lin or self.m_ls
+        QtCC, QsCC, QlCC, QsHC, QsTZ, QlTZ
+        (results of *self.solve_lin* or *self.m_ls*)
+
         θo, φo      outdoor point
 
         Returns
@@ -510,7 +514,7 @@ class MxCcRhTzBl:
         # Points       o   1  2  3  4  5        Elements
         A = np.array([[-1, 1, 0, 0, 0, 1],      # MR
                       [0, -1, 1, 0, 0, 0],      # CC
-                      [0, -1, 1, 1, 0, 0],     # MX
+                      [0, -1, 1, 1, 0, 0],      # MX
                       [0, 0, 0, -1, 1, 0],      # HC
                       [0, 0, 0, 0, -1, 1]])     # TZ
 
@@ -523,8 +527,8 @@ class MxCcRhTzBl:
 
         θ = pd.Series(θ)
         φ = 100 * pd.Series(psy.phi(θ, w))
-        w = 1000 * pd.Series(w)         # kg/kg -> g/kg
-        P = pd.concat([θ, w, φ], axis=1)   # points
+        w = 1000 * pd.Series(w)                 # kg/kg -> g/kg
+        P = pd.concat([θ, w, φ], axis=1)        # points
         P.columns = ['θ [°C]', 'w [g/kg]', 'φ [%]']
 
         output = P.to_string(formatters={
@@ -573,7 +577,9 @@ class MxCcRhTzBl:
         Parameters
         ----------
         value       {"θS", "wI"}' type of value controlled
+
         sp          set point for the controlled value
+
         θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
                     given by widgets in Jupyter notebook
 
@@ -582,7 +588,7 @@ class MxCcRhTzBl:
         None.
         """
         """
-        §6.1.1 and Figure 9 in Ghiaus (2021)
+        §6.1.1 and Figure 9 in Ghiaus (2022)
         value='φ5' (KwI = 0)
 
         <=4================================4============================
@@ -603,7 +609,7 @@ class MxCcRhTzBl:
 
 
 
-        §6.1.2 in Ghiaus (2021) (no equivalent figure in Ghiaus (2021))
+        §6.1.2 in Ghiaus (2022) (no equivalent figure in Ghiaus (2022))
         value='θS'
 
         <=4================================4============================
@@ -639,7 +645,9 @@ class MxCcRhTzBl:
         Parameters
         ----------
         value       {"θS", "wI"}' type of value controlled
+
         sp          set point for the controlled value
+
         θo, φo, θ5sp, φ5sp, mi, UA, QsBL, QlBL
                     given by widgets in Jupyter notebook
 
@@ -648,7 +656,7 @@ class MxCcRhTzBl:
         None.
         """
         """
-        §6.2.3 and Figure 15 in Ghiaus (2021)
+        §6.2.3 and Figure 15 in Ghiaus (2022)
         value='wI' (KwI = 0)
 
         <=4================================4===========================
@@ -669,7 +677,7 @@ class MxCcRhTzBl:
 
 
 
-        §6.2.3 and Figure 15 in Ghiaus (2021)
+        §6.2.3 and Figure 15 in Ghiaus (2022)
         value='wI' (KwI = 0)
 
         <=4================================4===========================
