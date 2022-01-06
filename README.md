@@ -21,7 +21,7 @@ To experiment with a `cool_fig_*.ipynb` notebook:
 
 The notebooks may run interactively on Binder.
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/zenodo/10.5281/zenodo.5579167/)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/zenodo/10.5281/zenodo.5236450/)
 
 **Licence**
 
