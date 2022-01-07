@@ -19,7 +19,7 @@
 
 **Instructions**
 
-To experiment with a `cool_fig_*.ipynb` notebook:
+To experiment with `cool_fig_*.ipynb` notebooks:
 - Run the *Jupyter* notebooks by clicking the double arrow icon `>>` or by selecting from the pull-down menu: `Kernel / Restart Kernel & Run All Cells...` then by clicking: `Restart`.
 - Change the values of the widgets for the psychrometric representations presented in the paper.
 
