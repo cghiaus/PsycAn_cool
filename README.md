@@ -6,7 +6,7 @@
 **Contents**
 
 - `Preprint_PsychroAn.pdf` the preprint of the accompanying paper.
-cool.py Python module implementing the psychrometric analysis described in the paper.
+- `cool.py` Python module implementing the psychrometric analysis described in the paper.
 - `cool_fig.py` Python module for interactive figures presented in the paper.
 - `psychro.py` Python module for psycrhrometric calculations.
 - `cool_fig_06.ipynb` Figure 6 from section *5.1. Control of indoor air temperature & humidity in CAV systems with reheating*.
