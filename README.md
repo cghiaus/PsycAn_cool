@@ -25,7 +25,7 @@ To experiment with `cool_fig_*.ipynb` notebooks:
 
 The notebooks can be run interactively on mybinder.org (click the button below).
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/zenodo/10.5281/zenodo.5236450/)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/cghiaus/PsychroAn_cool/HEAD)
 
 
 **Licence**
