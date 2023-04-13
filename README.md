@@ -5,7 +5,6 @@
 
 **Contents**
 
-- `Preprint_PsychroAn.pdf` the preprint of the accompanying paper.
 - `cool.py` Python module implementing the psychrometric analysis described in the paper.
 - `cool_fig.py` Python module for interactive figures presented in the paper.
 - `psychro.py` Python module for psycrhrometric calculations.
